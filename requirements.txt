@@ -2,3 +2,5 @@ requests
 pymongo
 pyyaml
 python-dotenv
+fastapi
+uvicorn
