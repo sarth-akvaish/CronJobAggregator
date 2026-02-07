@@ -1,7 +1,8 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Depends, Query
 from typing import List, Optional
 from api.db import jobs_collection
 from api.schemas import Job
+from api.auth import authenticate
 
 app = FastAPI(title="Job Aggregator API")
 
@@ -9,12 +10,12 @@ app = FastAPI(title="Job Aggregator API")
 def health():
     return {"status": "ok"}
 
-@app.get("/companies", response_model=List[str])
+@app.get("/companies", response_model=List[str], dependencies=[Depends(authenticate)])
 def get_companies():
     companies = jobs_collection.distinct("company")
     return sorted(companies)
 
-@app.get("/jobs", response_model=List[Job])
+@app.get("/jobs", response_model=List[Job], dependencies=[Depends(authenticate)])
 def get_jobs(
     company: Optional[str] = None,
     limit: int = Query(20, le=100),
