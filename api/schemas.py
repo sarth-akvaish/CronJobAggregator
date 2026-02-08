@@ -1,12 +1,19 @@
+from typing import List
 from pydantic import BaseModel
-from typing import Optional
 
 class Job(BaseModel):
     job_id: str
     company: str
     title: str
-    location: str
+    location: str | None = None
     apply_url: str
-    source: str
-    posted_at: Optional[str]
-    updated_at: Optional[str]
+    posted_at: str | None = None
+    updated_at: str | None = None
+    source: str | None = None
+
+
+class PaginatedJobs(BaseModel):
+    total: int
+    limit: int
+    offset: int
+    jobs: List[Job]

@@ -27,4 +27,4 @@ jobs:
         env:
           MONGO_URI: ${{ secrets.MONGO_URI }}
         run: |
-          python scripts.scrape_and_store
+          python -m scripts.scrape_and_store

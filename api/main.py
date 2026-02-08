@@ -3,7 +3,7 @@ from fastapi import FastAPI, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
 from api.db import jobs_collection
-from api.schemas import Job
+from api.schemas import PaginatedJobs
 from api.auth import authenticate
 
 app = FastAPI(title="Job Aggregator API")
@@ -28,22 +28,37 @@ def get_companies():
     companies = jobs_collection.distinct("company")
     return sorted(companies)
 
-@app.get("/jobs", response_model=List[Job], dependencies=[Depends(authenticate)])
+@app.get("/jobs", response_model=PaginatedJobs, dependencies=[Depends(authenticate)])
 def get_jobs(
     company: Optional[str] = None,
+    search : Optional[str] = None,
     limit: int = Query(20, le=100),
     offset: int = 0,
 ):
     query = {}
-    if company:
-        query["company"] = company
+
+    if search:
+        query["$or"] = [
+            {"title": {"$regex": search, "$options": "i"}},
+            {"company": {"$regex": search, "$options": "i"}},
+            {"location": {"$regex": search, "$options": "i"}},
+        ]
+
+    total = jobs_collection.count_documents(query)
 
     cursor = (
         jobs_collection
         .find(query, {"_id": 0})
+        .sort([
+            ("job_id", 1)
+        ])
         .skip(offset)
         .limit(limit)
-        .sort("updated_at", -1)
-    )
+        )
 
-    return list(cursor)
+    return {
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "jobs": list(cursor),
+    }
