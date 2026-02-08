@@ -1,10 +1,23 @@
+import os
 from fastapi import FastAPI, Depends, Query
+from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
 from api.db import jobs_collection
 from api.schemas import Job
 from api.auth import authenticate
 
 app = FastAPI(title="Job Aggregator API")
+
+allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "")
+allowed_origins = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/health")
 def health():
